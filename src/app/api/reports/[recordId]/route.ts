@@ -1,7 +1,7 @@
 import { renderToBuffer } from "@react-pdf/renderer";
 import { NextResponse } from "next/server";
 import { airtableConfig } from "@/lib/airtable/config";
-import { fetchRecordById } from "@/lib/airtable/records";
+import { extractAirtableErrorMessage, fetchRecordById } from "@/lib/airtable/records";
 import { CoachingReportDocument } from "@/lib/pdf/CoachingReportDocument";
 
 export async function GET(
@@ -24,7 +24,7 @@ export async function GET(
     });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Okänt fel" },
+      { error: extractAirtableErrorMessage(error) },
       { status: 500 }
     );
   }

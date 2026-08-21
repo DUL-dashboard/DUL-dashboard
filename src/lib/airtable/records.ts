@@ -41,6 +41,30 @@ export type ConnectionCheckResult =
   | { connected: false; error: string };
 
 /**
+ * Airtables Node-SDK avvisar promises med vanliga objekt i formen
+ * { error, message, statusCode } snarare än riktiga Error-instanser,
+ * så vi måste läsa ut meddelandet manuellt för att kunna visa det.
+ */
+export function extractAirtableErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+
+  if (error && typeof error === "object") {
+    const { error: code, message, statusCode } = error as {
+      error?: string;
+      message?: string;
+      statusCode?: number;
+    };
+
+    if (message) {
+      return statusCode ? `${message} (${code ?? statusCode})` : message;
+    }
+    if (code) return code;
+  }
+
+  return "Okänt fel";
+}
+
+/**
  * Enkel hälsokontroll: försöker hämta en post för att bevisa att
  * kopplingen mot Airtable (API-nyckel + bas-id + tabellnamn) fungerar.
  */
@@ -62,7 +86,7 @@ export async function checkAirtableConnection(
   } catch (error) {
     return {
       connected: false,
-      error: error instanceof Error ? error.message : "Okänt fel",
+      error: extractAirtableErrorMessage(error),
     };
   }
 }
