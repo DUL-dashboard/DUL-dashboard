@@ -26,6 +26,28 @@ export async function fetchRecords(
   }));
 }
 
+/**
+ * Hämtar samtliga poster i en tabell (paginerar över hela tabellen),
+ * till skillnad från fetchRecords som bara läser första sidan.
+ */
+export async function fetchAllRecords(
+  tableName: string
+): Promise<AirtableRecord[]> {
+  const base = getAirtableBase();
+  const records: AirtableRecord[] = [];
+
+  await base(tableName)
+    .select({ pageSize: 100 })
+    .eachPage((rows, fetchNextPage) => {
+      for (const row of rows) {
+        records.push({ id: row.id, fields: row.fields });
+      }
+      fetchNextPage();
+    });
+
+  return records;
+}
+
 export async function fetchRecordById(
   tableName: string,
   recordId: string
