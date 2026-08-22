@@ -18,7 +18,7 @@ export default async function CoachPage({
     notFound();
   }
 
-  const dimensions = await fetchCoachAnswerSummary(coachId);
+  const dimensions = await fetchCoachAnswerSummary(coach);
 
   return (
     <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-8 p-8">

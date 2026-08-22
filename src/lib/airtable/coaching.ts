@@ -3,6 +3,7 @@ import { fetchAllRecords, fetchRecordById, type AirtableRecord } from "./records
 
 export type Coach = {
   id: string;
+  coachCode: string;
   name: string;
   sport: string;
   athleteCount: string;
@@ -29,37 +30,11 @@ export type DimensionSummary = {
   questions: QuestionSummary[];
 };
 
-// Fältnamnen i Airtable-basen är inte formellt låsta ännu, så vi provar
-// ett par rimliga varianter per fält istället för att anta exakt namn.
-function pickText(fields: Record<string, unknown>, candidates: string[]): string {
-  for (const key of candidates) {
-    const value = fields[key];
-    if (typeof value === "string" && value.trim() !== "") return value;
-    if (typeof value === "number") return String(value);
-  }
+function textField(fields: Record<string, unknown>, key: string): string {
+  const value = fields[key];
+  if (typeof value === "string") return value;
+  if (typeof value === "number") return String(value);
   return "";
-}
-
-function pickLinkedIds(fields: Record<string, unknown>, candidates: string[]): string[] {
-  for (const key of candidates) {
-    const value = fields[key];
-    if (Array.isArray(value) && value.every((entry) => typeof entry === "string")) {
-      return value as string[];
-    }
-  }
-  return [];
-}
-
-function pickAnswerValue(fields: Record<string, unknown>): AnswerValue | null {
-  const candidates = ["Svar", "Svarsalternativ", "Bedömning", "Answer"];
-  for (const key of candidates) {
-    const raw = fields[key];
-    const value = Array.isArray(raw) ? raw[0] : raw;
-    if (typeof value === "string" && (ANSWER_SCALE as readonly string[]).includes(value)) {
-      return value as AnswerValue;
-    }
-  }
-  return null;
 }
 
 function emptyCounts(): Record<AnswerValue, number> {
@@ -74,10 +49,11 @@ function emptyCounts(): Record<AnswerValue, number> {
 function coachFromRecord(record: AirtableRecord): Coach {
   return {
     id: record.id,
-    name: pickText(record.fields, ["Namn", "Name"]),
-    sport: pickText(record.fields, ["Idrott", "Sport"]),
-    athleteCount: pickText(record.fields, ["Antal idrottare", "Antal Idrottare"]),
-    courseGroup: pickText(record.fields, ["Kursomgång", "Kursomgang"]),
+    coachCode: textField(record.fields, "Coach_ID"),
+    name: textField(record.fields, "Namn"),
+    sport: textField(record.fields, "Idrott"),
+    athleteCount: textField(record.fields, "Antal idrottare"),
+    courseGroup: textField(record.fields, "Kursomgång"),
   };
 }
 
@@ -92,23 +68,26 @@ export async function fetchCoachById(coachId: string): Promise<Coach> {
 }
 
 /**
- * Sammanställer alla registrerade svar för en tränare, grupperat per
- * dimension och fråga, med en räkning per svarsalternativ.
+ * Svar-tabellen länkar till Tränare och Frågor via textkoderna
+ * Coach_ID och Fråga_ID (mot Frågor-tabellens FrågeID) — inte via
+ * Airtables länkfält.
  */
 export async function fetchCoachAnswerSummary(
-  coachId: string
+  coach: Coach
 ): Promise<DimensionSummary[]> {
+  if (!coach.coachCode) return [];
+
   const [answers, questions] = await Promise.all([
     fetchAllRecords(airtableConfig.answersTable),
     fetchAllRecords(airtableConfig.questionsTable),
   ]);
 
-  const questionById = new Map(
+  const questionByCode = new Map(
     questions.map((question) => [
-      question.id,
+      textField(question.fields, "FrågeID"),
       {
-        text: pickText(question.fields, ["Fråga", "Namn", "Question", "Text"]),
-        dimension: pickText(question.fields, ["Dimension", "Kategori"]) || "Övrigt",
+        text: textField(question.fields, "Frågetext"),
+        dimension: textField(question.fields, "Dimension") || "Övrigt",
       },
     ])
   );
@@ -117,33 +96,29 @@ export async function fetchCoachAnswerSummary(
   const dimensions = new Map<string, Map<string, QuestionSummary>>();
 
   for (const answer of answers) {
-    const coachIds = pickLinkedIds(answer.fields, ["Tränare", "Coach"]);
-    if (!coachIds.includes(coachId)) continue;
+    if (textField(answer.fields, "Coach_ID") !== coach.coachCode) continue;
 
-    const answerValue = pickAnswerValue(answer.fields);
-    if (!answerValue) continue;
+    const answerValue = textField(answer.fields, "Svar");
+    if (!(ANSWER_SCALE as readonly string[]).includes(answerValue)) continue;
 
-    const questionIds = pickLinkedIds(answer.fields, ["Fråga", "Frågor", "Question"]);
-    for (const questionId of questionIds) {
-      const question = questionById.get(questionId);
-      if (!question) continue;
+    const question = questionByCode.get(textField(answer.fields, "Fråga_ID"));
+    if (!question) continue;
 
-      let questionMap = dimensions.get(question.dimension);
-      if (!questionMap) {
-        questionMap = new Map();
-        dimensions.set(question.dimension, questionMap);
-        dimensionOrder.push(question.dimension);
-      }
-
-      let summary = questionMap.get(question.text);
-      if (!summary) {
-        summary = { question: question.text, counts: emptyCounts(), total: 0 };
-        questionMap.set(question.text, summary);
-      }
-
-      summary.counts[answerValue] += 1;
-      summary.total += 1;
+    let questionMap = dimensions.get(question.dimension);
+    if (!questionMap) {
+      questionMap = new Map();
+      dimensions.set(question.dimension, questionMap);
+      dimensionOrder.push(question.dimension);
     }
+
+    let summary = questionMap.get(question.text);
+    if (!summary) {
+      summary = { question: question.text, counts: emptyCounts(), total: 0 };
+      questionMap.set(question.text, summary);
+    }
+
+    summary.counts[answerValue as AnswerValue] += 1;
+    summary.total += 1;
   }
 
   return dimensionOrder.map((dimension) => ({
