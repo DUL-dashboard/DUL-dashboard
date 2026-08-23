@@ -70,9 +70,12 @@ dashboarden redan läser (`Fråga_ID`, `Svar`, `Coach_ID`, `Tidsstämpel`).
 
 Filer i `scripts/tally-integration/`:
 
-- `question-ids.mjs` – källa till sanning för de 52 frågekolumnernas namn
-  (F1..F52 som platshållare – byt ut mot de riktiga `FrågeID`-värdena från
-  Frågor-tabellen).
+- `question-ids.mjs` – källa till sanning för de 52 frågekolumnernas namn:
+  `FrågeID`-värdena (t.ex. `A1_1`, `B2_3`) från Frågor-tabellen där
+  `Endast för åldersgrupp` = `Alla` (dimensionerna A–D). De 12 återstående
+  frågorna i Frågor-tabellen (`E1_1`..`E3_4`, dimensionen "Synligt
+  samarbete") gäller bara vissa åldersgrupper och ingår inte i detta
+  formulär.
 - `create-tally-inskickningar-table.mjs` – engångsscript som skapar
   `Tally-inskickningar`-tabellen via Airtables Metadata-API. Kräver en PAT
   med scope `schema.bases:write` utöver `data.records:read/write`. Körs
@@ -82,6 +85,10 @@ Filer i `scripts/tally-integration/`:
   node --env-file=.env.local scripts/tally-integration/create-tally-inskickningar-table.mjs
   ```
 
+  Tabellen `Tally-inskickningar` (`tblRNx9yWDqfvd9fk`) finns redan i basen
+  med rätt 55 fält – scriptet är idempotent (gör inget om tabellen redan
+  finns) och behöver bara köras igen om tabellen tas bort.
+
 - `airtable-automation-tally-to-svar.js` – innehållet klistras in i ett
   "Run a script"-steg i en Airtable Automation (trigger: "When record
   created" på `Tally-inskickningar`, med en input variable `recordId` =
@@ -90,11 +97,9 @@ Filer i `scripts/tally-integration/`:
   läsa/skriva poster – därför är detta ett separat steg från
   tabellskapandet ovan.
 
-**Innan ni kör:** ersätt platshållarlistan i `question-ids.mjs` (och håll
-`QUESTION_IDS` i `airtable-automation-tally-to-svar.js` manuellt i synk,
-scriptsandlådan i Airtable kan inte importera filer) med de faktiska
-`FrågeID`-värdena från er Frågor-tabell, så att `Tally-inskickningar`-
-kolumnerna matchar det Tally-formuläret faktiskt skickar in.
+**Kvarstår:** koppla Tally-formuläret så att det faktiskt skriver in svar i
+`Tally-inskickningar` (Tallys inbyggda Airtable-integration eller
+Zapier/Make), och sätt upp automationen enligt ovan i Airtable-UI:t.
 
 ## Nästa steg
 
