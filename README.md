@@ -64,9 +64,10 @@ bestämt hur en DUL-rapport faktiskt ska se ut.
 Tally-formulärsvar skrivs (via Tallys inbyggda Airtable-integration eller en
 mellanhand som Zapier/Make) som en rad per inskickning i tabellen
 `Tally-inskickningar` – en kolumn per fråga (52 st) plus `Coach_ID`,
-`Tidsstämpel` och `Bearbetad`. En Airtable Automation packar sedan upp varje
-inskickning till en rad per besvarad fråga i `Svar`, i det format
-dashboarden redan läser (`Fråga_ID`, `Svar`, `Coach_ID`, `Tidsstämpel`).
+`Tidsstämpel` och `Bearbetad`. Uppackningen till en rad per besvarad fråga i
+`Svar` (i det format dashboarden redan läser: `Fråga_ID`, `Svar`, `Coach_ID`,
+`Tidsstämpel`) körs **manuellt, på begäran** – inte via en Airtable
+Automation (kräver Airtables betalda Team-plan, och används inte här).
 
 Filer i `scripts/tally-integration/`:
 
@@ -89,17 +90,21 @@ Filer i `scripts/tally-integration/`:
   med rätt 55 fält – scriptet är idempotent (gör inget om tabellen redan
   finns) och behöver bara köras igen om tabellen tas bort.
 
-- `airtable-automation-tally-to-svar.js` – innehållet klistras in i ett
-  "Run a script"-steg i en Airtable Automation (trigger: "When record
-  created" på `Tally-inskickningar`, med en input variable `recordId` =
-  triggerpostens Record ID). Se kommentaren högst upp i filen för
-  steg-för-steg-instruktioner. Automationer kan inte skapa tabeller, bara
-  läsa/skriva poster – därför är detta ett separat steg från
-  tabellskapandet ovan.
+- `process-tally-submissions.mjs` – körs manuellt (av Claude, på begäran, eller
+  av er själva) när en kursomgång är klar och ni vill packa upp alla nya
+  inskickningar. Läser alla rader i `Tally-inskickningar` där `Bearbetad`
+  inte är ikryssad, skapar motsvarande `Svar`-rader, och kryssar i
+  `Bearbetad`. Säker att köra flera gånger – redan bearbetade rader
+  processas inte om.
+
+  ```bash
+  node --env-file=.env.local scripts/tally-integration/process-tally-submissions.mjs
+  ```
 
 **Kvarstår:** koppla Tally-formuläret så att det faktiskt skriver in svar i
 `Tally-inskickningar` (Tallys inbyggda Airtable-integration eller
-Zapier/Make), och sätt upp automationen enligt ovan i Airtable-UI:t.
+Zapier/Make). Efter det behövs ingen automation i Airtable – uppackningen
+körs på begäran med scriptet ovan.
 
 ## Nästa steg
 
