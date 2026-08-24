@@ -59,6 +59,53 @@ konfigurerade Airtable-tabellen. Mallen (`CoachingReportDocument`) är en
 första utgångspunkt – layout och innehåll behöver anpassas när vi
 bestämt hur en DUL-rapport faktiskt ska se ut.
 
+## Tally → Svar-transform
+
+Tally-formulärsvar skrivs (via Tallys inbyggda Airtable-integration eller en
+mellanhand som Zapier/Make) som en rad per inskickning i tabellen
+`Tally-inskickningar` – en kolumn per fråga (52 st) plus `Coach_ID`,
+`Tidsstämpel` och `Bearbetad`. Uppackningen till en rad per besvarad fråga i
+`Svar` (i det format dashboarden redan läser: `Fråga_ID`, `Svar`, `Coach_ID`,
+`Tidsstämpel`) körs **manuellt, på begäran** – inte via en Airtable
+Automation (kräver Airtables betalda Team-plan, och används inte här).
+
+Filer i `scripts/tally-integration/`:
+
+- `question-ids.mjs` – källa till sanning för de 52 frågekolumnernas namn:
+  `FrågeID`-värdena (t.ex. `A1_1`, `B2_3`) från Frågor-tabellen där
+  `Endast för åldersgrupp` = `Alla` (dimensionerna A–D). De 12 återstående
+  frågorna i Frågor-tabellen (`E1_1`..`E3_4`, dimensionen "Synligt
+  samarbete") gäller bara vissa åldersgrupper och ingår inte i detta
+  formulär.
+- `create-tally-inskickningar-table.mjs` – engångsscript som skapar
+  `Tally-inskickningar`-tabellen via Airtables Metadata-API. Kräver en PAT
+  med scope `schema.bases:write` utöver `data.records:read/write`. Körs
+  lokalt, aldrig i produktion:
+
+  ```bash
+  node --env-file=.env.local scripts/tally-integration/create-tally-inskickningar-table.mjs
+  ```
+
+  Tabellen `Tally-inskickningar` (`tblRNx9yWDqfvd9fk`) finns redan i basen
+  med rätt 55 fält – scriptet är idempotent (gör inget om tabellen redan
+  finns) och behöver bara köras igen om tabellen tas bort.
+
+- `process-tally-submissions.mjs` – körs manuellt (av Claude, på begäran, eller
+  av er själva) när en kursomgång är klar och ni vill packa upp alla nya
+  inskickningar. Läser alla rader i `Tally-inskickningar` där `Bearbetad`
+  inte är ikryssad, skapar motsvarande `Svar`-rader, och kryssar i
+  `Bearbetad`. Säker att köra flera gånger – redan bearbetade rader
+  processas inte om.
+
+  ```bash
+  node --env-file=.env.local scripts/tally-integration/process-tally-submissions.mjs
+  ```
+
+**Kvarstår:** koppla Tally-formuläret så att det faktiskt skriver in svar i
+`Tally-inskickningar` (Tallys inbyggda Airtable-integration eller
+Zapier/Make). Efter det behövs ingen automation i Airtable – uppackningen
+körs på begäran med scriptet ovan.
+
 ## Nästa steg
 
 - Definiera det faktiska Airtable-schemat (tabeller/fält) för DUL.
