@@ -1,4 +1,5 @@
-import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import path from "path";
+import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import {
   ANSWER_OPTIONS,
   type AnswerOption,
@@ -10,21 +11,28 @@ import {
 
 /**
  * Visuell mall byggd efter tranarrapport_exempel_v2.pdf (v5, slutgiltig
- * design). Två avvikelser från originalfilen, båda pga att verklig data
- * inte stödjer dem:
- *  - Svarsskalan har bara 4 alternativ i vårt system (ANSWER_OPTIONS),
- *    inte de 5 i exempelfilens färgförklaring ("Ofta" saknas helt hos
- *    oss) - färgerna nedan är en direkt ommappning av samma fyra
- *    alternativ vi faktiskt har.
- *  - Ingen hjältebild på omslaget (inget bildmaterial tillgängligt) -
- *    ersatt med samma färgblocklayout utan foto.
+ * design), inklusive samma omslagsbild (extraherad ur originalfilen).
+ *
+ * En avvikelse kvarstår mot originalfilen eftersom verklig data inte
+ * stödjer den: svarsskalan har bara 4 alternativ i vårt system
+ * (ANSWER_OPTIONS), inte de 5 i exempelfilens färgförklaring ("Ofta"
+ * saknas helt hos oss) - färgerna nedan är en direkt ommappning av
+ * samma fyra alternativ vi faktiskt har.
+ *
+ * Rapporten avser åldersgruppen 20+ år och omfattar därför bara
+ * områdena A-D (52 frågor) - område E (Triaden, åldersbegränsade
+ * frågor) samlas inte in i 20+-versionen och visas inte.
  */
+
+const COVER_HERO_PATH = path.join(
+  process.cwd(),
+  "src/lib/pdf/assets/cover-hero.png"
+);
 
 const GOLD = "#C99A2E";
 const GOLD_DARK = "#A67F1F";
 const GOLD_LIGHT = "#F2D98A";
 const CHARCOAL = "#2B2B2B";
-const CREAM = "#FBF3DE";
 const BORDER = "#D8D2C4";
 
 const ANSWER_COLORS: Record<AnswerOption, string> = {
@@ -44,10 +52,10 @@ const ANSWER_TEXT_COLORS: Record<AnswerOption, string> = {
 const styles = StyleSheet.create({
   coverPage: { fontFamily: "Helvetica", backgroundColor: "#FFFFFF" },
   coverTopBar: { height: 40, backgroundColor: GOLD_LIGHT },
-  coverHero: {
+  coverHeroImage: {
+    width: "100%",
     height: 300,
-    backgroundColor: GOLD,
-    justifyContent: "flex-end",
+    objectFit: "cover",
   },
   coverHeroBand: { height: 20, backgroundColor: GOLD_LIGHT },
   coverHeroBandDark: { height: 6, backgroundColor: GOLD_DARK },
@@ -65,6 +73,13 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica-Bold",
     color: GOLD_DARK,
     letterSpacing: 1,
+    marginBottom: 6,
+  },
+  coverAgeNote: {
+    fontSize: 9,
+    fontFamily: "Helvetica-Bold",
+    color: CHARCOAL,
+    letterSpacing: 0.5,
     marginBottom: 24,
   },
   coverTable: { width: "100%", maxWidth: 400, marginBottom: 24 },
@@ -204,14 +219,20 @@ const styles = StyleSheet.create({
   questionN: { width: 28, fontSize: 7.5, color: "#8A8A8A", textAlign: "right" },
   introLine: { fontSize: 7.5, fontFamily: "Helvetica-Oblique", color: "#8A8A8A", marginBottom: 4 },
 
-  reflectionBox: {
-    backgroundColor: CREAM,
-    border: `0.75px solid ${GOLD}`,
-    padding: 10,
-    marginTop: 4,
+  notesBlock: { marginTop: 10 },
+  notesTitle: {
+    fontSize: 8,
+    fontFamily: "Helvetica-Bold",
+    color: GOLD_DARK,
+    letterSpacing: 0.5,
+    marginBottom: 10,
   },
-  reflectionTitle: { fontSize: 9.5, fontFamily: "Helvetica-Bold", color: CHARCOAL, marginBottom: 6 },
-  reflectionLine: { fontSize: 8.5, color: CHARCOAL, marginBottom: 3, lineHeight: 1.3 },
+  notesLine: {
+    height: 20,
+    borderBottomWidth: 0.75,
+    borderBottomColor: "#C7BFA9",
+    borderBottomStyle: "dotted",
+  },
 });
 
 function MIN_SEGMENT() {
@@ -230,6 +251,17 @@ function ColorLegend() {
           </View>
         ))}
       </View>
+    </View>
+  );
+}
+
+function NotesLines({ lines = 4 }: { lines?: number }) {
+  return (
+    <View style={styles.notesBlock} wrap={false}>
+      <Text style={styles.notesTitle}>ANTECKNINGAR</Text>
+      {Array.from({ length: lines }).map((_, i) => (
+        <View key={i} style={styles.notesLine} />
+      ))}
     </View>
   );
 }
@@ -381,12 +413,19 @@ export function CoachDimensionReportDocument({
         )}%)`
       : `${antalSvarande} idrottare`;
 
+  // 20+-versionen av DUL samlar inte in område E (Triaden - åldersbegränsade
+  // frågor), så det visas inte i rapportens beskrivning av sin egen struktur.
+  const visibleInstrumentStructure = instrumentStructure.filter(
+    (area) => area.code !== "E"
+  );
+
   return (
     <Document>
       {/* Sida 1: Omslag */}
       <Page size="A4" style={styles.coverPage}>
         <View style={styles.coverTopBar} />
-        <View style={styles.coverHero} />
+        {/* eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image, not an HTML img */}
+        <Image src={COVER_HERO_PATH} style={styles.coverHeroImage} />
         <View style={styles.coverHeroBand} />
         <View style={styles.coverHeroBandDark} />
         <View style={styles.coverHeroBand2} />
@@ -394,13 +433,12 @@ export function CoachDimensionReportDocument({
         <View style={styles.coverBody}>
           <Text style={styles.coverTitle}>Ditt Unika Ledarskap</Text>
           <Text style={styles.coverSubtitle}>FEEDFORWARD-RAPPORT</Text>
+          <Text style={styles.coverAgeNote}>FÖR ÅLDERSGRUPPEN 20+ ÅR</Text>
 
           <View style={styles.coverTable}>
             {[
               ["TRÄNARE", coachName ?? `Tränare ${coachId}`],
               ["IDROTT", idrott ?? "–"],
-              ["ÅLDERSGRUPP", "–"],
-              ["NIVÅ", "–"],
               ["ANTAL SVAR", svarandeLabel],
               ["RAPPORTDATUM", reportDate],
             ].map(([label, value]) => (
@@ -425,12 +463,12 @@ export function CoachDimensionReportDocument({
 
         <Text style={styles.h1}>Om din rapport</Text>
         <Text style={styles.body}>
-          Den här rapporten sammanfattar svaren från dina idrottare. Svaren är helt
+          Den här rapporten sammanfattar svaren från idrottarna. Svaren är helt
           anonyma och redovisas endast som grupp. Rapporten är din utgångspunkt för
           att identifiera styrkor och utvecklingsområden i ditt ledarskap.
         </Text>
         <Text style={styles.body}>
-          Feedback från dina idrottare gör att du kan utveckla de beteenden du anser
+          Feedback från idrottarna gör att du kan utveckla de beteenden du anser
           viktiga. Metoden kallas feedforward – rapporten stannar inte vid
           återkoppling, utan börjar där för att ta dig framåt i din utveckling.
         </Text>
@@ -444,13 +482,13 @@ export function CoachDimensionReportDocument({
 
         <Text style={styles.h2}>Så är rapporten uppbyggd</Text>
         <Text style={styles.body}>
-          Resultatet redovisas i {instrumentStructure.length} områden. Varje område
-          innehåller flera dimensioner, och varje dimension innehåller fyra frågor.
-          För varje dimension ser du först en sammanfattande stapel, därefter
-          resultatet för var och en av de fyra frågorna.
+          Resultatet redovisas i {visibleInstrumentStructure.length} områden. Varje
+          område innehåller flera dimensioner, och varje dimension innehåller fyra
+          frågor. För varje dimension ser du först en sammanfattande stapel,
+          därefter resultatet för var och en av de fyra frågorna.
         </Text>
 
-        {instrumentStructure.map((area) => (
+        {visibleInstrumentStructure.map((area) => (
           <View key={area.code} style={styles.structureRow}>
             <Text style={styles.structureBadge}>{area.code}</Text>
             <Text style={styles.structureName}>{area.name.toUpperCase()}</Text>
@@ -505,6 +543,16 @@ export function CoachDimensionReportDocument({
               ))
             )}
           </View>
+
+          <Text style={[styles.body, { marginTop: 12 }]}>
+            {/* Platshållartext - ersätts med kundens egen formulering. */}
+            Använd överblicken som en helhetsbild: leta efter mönster snarare
+            än enskilda avvikelser. Ett område där ett mindre önskvärt svar
+            dominerar över flera frågor är ofta mer värt att följa upp än en
+            enstaka fråga.
+          </Text>
+
+          <NotesLines lines={3} />
         </Page>
       )}
 
@@ -540,16 +588,7 @@ export function CoachDimensionReportDocument({
             </View>
           ))}
 
-          <View style={styles.reflectionBox} wrap={false}>
-            <Text style={styles.reflectionTitle}>Reflektera inför utbildningen</Text>
-            <Text style={styles.reflectionLine}>• Vilka svar i detta område överraskar dig mest?</Text>
-            <Text style={styles.reflectionLine}>
-              • Vilket beteende vill du behålla och förstärka?
-            </Text>
-            <Text style={styles.reflectionLine}>
-              • Vilket beteende vill du utveckla under kommande period?
-            </Text>
-          </View>
+          <NotesLines lines={4} />
         </Page>
       ))}
     </Document>
