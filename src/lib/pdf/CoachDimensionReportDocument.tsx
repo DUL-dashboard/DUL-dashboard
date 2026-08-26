@@ -147,18 +147,18 @@ const styles = StyleSheet.create({
     color: "#8A8A8A",
   },
 
-  h1: { fontSize: 20, fontFamily: "Helvetica-Bold", color: CHARCOAL, marginBottom: 10 },
-  h2: { fontSize: 11, fontFamily: "Helvetica-Bold", color: GOLD_DARK, marginBottom: 4, marginTop: 14 },
+  h1: { fontSize: 20, fontFamily: "Helvetica-Bold", color: CHARCOAL, marginBottom: 8 },
+  h2: { fontSize: 11, fontFamily: "Helvetica-Bold", color: GOLD_DARK, marginBottom: 3, marginTop: 10 },
   body: { fontSize: 10, lineHeight: 1.4, marginBottom: 6 },
 
   legendBox: {
     backgroundColor: "#F7F4EC",
     border: `0.5px solid ${BORDER}`,
-    padding: 10,
-    marginTop: 6,
-    marginBottom: 10,
+    padding: 7,
+    marginTop: 4,
+    marginBottom: 7,
   },
-  legendTitle: { fontSize: 8, fontFamily: "Helvetica-Bold", color: CHARCOAL, marginBottom: 6, letterSpacing: 0.5 },
+  legendTitle: { fontSize: 8, fontFamily: "Helvetica-Bold", color: CHARCOAL, marginBottom: 4, letterSpacing: 0.5 },
   legendRow: { flexDirection: "row", flexWrap: "wrap" },
   legendItem: { flexDirection: "row", alignItems: "center", marginRight: 18, marginBottom: 2 },
   legendSwatch: { width: 12, height: 12, marginRight: 5 },
@@ -187,37 +187,37 @@ const styles = StyleSheet.create({
   matrixDimCell: { flex: 3, padding: 5, fontSize: 8, backgroundColor: "#F7F4EC" },
   matrixValueCell: { flex: 1, height: 20 },
 
-  areaHeaderRow: { flexDirection: "row", backgroundColor: CHARCOAL, marginTop: 4, marginBottom: 10, alignItems: "stretch" },
+  areaHeaderRow: { flexDirection: "row", backgroundColor: CHARCOAL, marginTop: 2, marginBottom: 6, alignItems: "stretch" },
   areaBadge: {
-    width: 46,
-    height: 46,
+    width: 38,
+    height: 38,
     backgroundColor: GOLD,
     color: "#FFFFFF",
     fontFamily: "Helvetica-Bold",
-    fontSize: 24,
+    fontSize: 20,
     textAlign: "center",
-    paddingTop: 8,
+    paddingTop: 6,
   },
-  areaHeaderText: { justifyContent: "center", paddingLeft: 14, paddingVertical: 6 },
-  areaName: { color: "#FFFFFF", fontFamily: "Helvetica-Bold", fontSize: 15 },
-  areaLabel: { color: GOLD_LIGHT, fontSize: 8, fontFamily: "Helvetica-Bold", letterSpacing: 1, marginTop: 2 },
+  areaHeaderText: { justifyContent: "center", paddingLeft: 14, paddingVertical: 4 },
+  areaName: { color: "#FFFFFF", fontFamily: "Helvetica-Bold", fontSize: 14 },
+  areaLabel: { color: GOLD_LIGHT, fontSize: 7.5, fontFamily: "Helvetica-Bold", letterSpacing: 1, marginTop: 1 },
 
-  dimensionBlock: { marginBottom: 14 },
-  dimensionTitle: { fontSize: 11, fontFamily: "Helvetica-Bold", color: GOLD_DARK, marginBottom: 1 },
-  dimensionSubtitle: { fontSize: 7.5, fontFamily: "Helvetica-Oblique", color: "#8A8A8A", marginBottom: 4 },
+  dimensionBlock: { marginBottom: 8 },
+  dimensionTitle: { fontSize: 10.5, fontFamily: "Helvetica-Bold", color: GOLD_DARK, marginBottom: 1 },
+  dimensionSubtitle: { fontSize: 7, fontFamily: "Helvetica-Oblique", color: "#8A8A8A", marginBottom: 2 },
 
-  summaryBar: { flexDirection: "row", height: 20, marginBottom: 8 },
+  summaryBar: { flexDirection: "row", height: 15, marginBottom: 4 },
   summarySegment: { justifyContent: "center", alignItems: "center" },
-  summarySegmentText: { fontSize: 8, fontFamily: "Helvetica-Bold" },
+  summarySegmentText: { fontSize: 7.5, fontFamily: "Helvetica-Bold" },
 
-  questionRow: { flexDirection: "row", marginBottom: 6, alignItems: "center" },
-  questionText: { width: 210, fontSize: 8.5, lineHeight: 1.25, color: CHARCOAL },
+  questionRow: { flexDirection: "row", marginBottom: 3, alignItems: "center" },
+  questionText: { width: 210, fontSize: 8, lineHeight: 1.15, color: CHARCOAL },
   questionBarWrap: { flex: 1, flexDirection: "row", alignItems: "center" },
-  questionBar: { flex: 1, flexDirection: "row", height: 13 },
+  questionBar: { flex: 1, flexDirection: "row", height: 11 },
   questionSegment: { justifyContent: "center", alignItems: "center" },
   questionSegmentText: { fontSize: 7, fontFamily: "Helvetica-Bold" },
   questionN: { width: 28, fontSize: 7.5, color: "#8A8A8A", textAlign: "right" },
-  introLine: { fontSize: 7.5, fontFamily: "Helvetica-Oblique", color: "#8A8A8A", marginBottom: 4 },
+  introLine: { fontSize: 7, fontFamily: "Helvetica-Oblique", color: "#8A8A8A", marginBottom: 2 },
 
   notesBlock: { marginTop: 10 },
   notesTitle: {
@@ -552,7 +552,7 @@ export function CoachDimensionReportDocument({
             enstaka fråga.
           </Text>
 
-          <NotesLines lines={3} />
+          <NotesLines lines={9} />
         </Page>
       )}
 
@@ -588,7 +588,7 @@ export function CoachDimensionReportDocument({
             </View>
           ))}
 
-          <NotesLines lines={4} />
+          <NotesLines lines={6} />
         </Page>
       ))}
     </Document>
