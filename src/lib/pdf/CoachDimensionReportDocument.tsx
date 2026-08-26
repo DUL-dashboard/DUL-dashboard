@@ -166,6 +166,7 @@ const styles = StyleSheet.create({
   h1: { fontSize: 20, fontFamily: "Helvetica-Bold", color: CHARCOAL, marginBottom: 8 },
   h2: { fontSize: 11, fontFamily: "Helvetica-Bold", color: GOLD_DARK, marginBottom: 3, marginTop: 10 },
   body: { fontSize: 10, lineHeight: 1.4, marginBottom: 6 },
+  boldInline: { fontFamily: "Helvetica-Bold" },
 
   legendBox: {
     backgroundColor: "#F7F4EC",
@@ -578,6 +579,60 @@ export function CoachDimensionReportDocument({
           </Text>
 
           <NotesLines lines={9} />
+
+          <View wrap={false}>
+            <Text style={[styles.h1, { marginTop: 18 }]}>Om din rapport</Text>
+            <Text style={styles.body}>
+              Rapporten visar feedback från idrottarna om ditt ledarskap,
+              insamlad genom Ditt Unika Ledarskap (DUL). Det är inget
+              psykometriskt test av personlighet eller förmåga. Syftet är
+              pedagogiskt, att på ett positivt sätt utveckla
+              ledarskapsbeteenden hos tränare som är nyfikna på sitt unika
+              ledarskap.
+            </Text>
+            <Text style={styles.body}>
+              Metoden kallas feedforward. Rapporten stannar inte vid
+              återkoppling, utan är utgångspunkten för att ta dig framåt i din
+              utveckling. Tillsammans med en idrottspsykologisk rådgivare
+              identifierar du styrkor och utvecklingsområden och formar en
+              egen handlingsplan.
+            </Text>
+            <Text style={styles.body}>
+              DUL bygger på en evidensbaserad grund: transformerande
+              ledarskap, självbestämmande motivation (SDT), idrottspsykologi
+              och beteendeförändring. Resultatet redovisas i fyra områden.
+            </Text>
+
+            {[
+              [
+                "1. Transformerande ledarskap.",
+                " Samarbete, relationer och eget ansvar hos idrottarna.",
+              ],
+              [
+                "2. Självbestämmande motivation.",
+                " Autonomi, upplevd kompetens och tillhörighet.",
+              ],
+              [
+                "3. Prestations- och resultatorientering.",
+                " Fokus på insats, process och långsiktiga mål.",
+              ],
+              [
+                "4. Organisation, förväntningar och feedback.",
+                " Den dagliga träningsmiljön.",
+              ],
+            ].map(([lead, rest]) => (
+              <Text key={lead} style={[styles.body, { marginBottom: 4 }]}>
+                <Text style={styles.boldInline}>{lead}</Text>
+                {rest}
+              </Text>
+            ))}
+
+            <Text style={[styles.body, { marginTop: 4 }]}>
+              Varje område innehåller flera dimensioner med fyra frågor
+              vardera. Alla svar redovisas endast som grupp. Det framgår
+              aldrig vad en enskild idrottare svarat.
+            </Text>
+          </View>
         </Page>
       )}
 
