@@ -1,5 +1,5 @@
 import path from "path";
-import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Document, Font, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import {
   ANSWER_OPTIONS,
   LOW_RESPONSE_THRESHOLD,
@@ -393,6 +393,22 @@ const DOMINANCE_TIEBREAK_ORDER: AnswerOption[] = [
   "Då och då",
   "Nästan alltid",
 ];
+
+// React-pdf:s inbyggda avstavning saknar svenska mönster och kan bryta
+// sammansatta ord på konstiga ställen (t.ex. "idrottsp-sykologi"). Vi
+// stänger av automatisk avstavning helt och anger bara brytpunkten
+// manuellt för de sammansatta ord som faktiskt behöver kunna delas.
+const MANUAL_HYPHENATIONS: Record<string, string[]> = {
+  idrottspsykologi: ["idrotts", "psykologi"],
+  idrottspsykologisk: ["idrotts", "psykologisk"],
+  idrottspsykologiska: ["idrotts", "psykologiska"],
+};
+
+function hyphenationCallback(word: string): string[] {
+  return MANUAL_HYPHENATIONS[word.toLowerCase()] ?? [word];
+}
+
+Font.registerHyphenationCallback(hyphenationCallback);
 
 function dominantAnswer(
   counts: Record<AnswerOption, number>
