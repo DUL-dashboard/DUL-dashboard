@@ -1,6 +1,7 @@
 import { renderToBuffer } from "@react-pdf/renderer";
 import { NextResponse } from "next/server";
 import {
+  LOW_RESPONSE_THRESHOLD,
   TRANARE_TABLE,
   buildAreaReport,
   countTallySubmissionsForCoach,
@@ -12,10 +13,11 @@ import { fetchRecords } from "@/lib/airtable/records";
 import { CoachDimensionReportDocument } from "@/lib/pdf/CoachDimensionReportDocument";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ coachId: string }> }
 ) {
   const { coachId } = await params;
+  const confirmed = new URL(request.url).searchParams.get("confirm") === "true";
 
   try {
     const [fragorById, svarRows, tranareRows, antalSvarande] = await Promise.all([
@@ -24,6 +26,16 @@ export async function GET(
       fetchRecords(TRANARE_TABLE, 100),
       countTallySubmissionsForCoach(coachId),
     ]);
+
+    if (antalSvarande < LOW_RESPONSE_THRESHOLD && !confirmed) {
+      return NextResponse.json({
+        warning: true,
+        message: `Varning: endast ${antalSvarande} svar registrerade — resultat kan vara anonymitetskänsliga vid så få respondenter.`,
+        antalSvarande,
+        threshold: LOW_RESPONSE_THRESHOLD,
+        continueUrl: `/api/reports/coach/${coachId}?confirm=true`,
+      });
+    }
 
     const coach = tranareRows.find(
       (row) => String(row.fields["Coach_ID"] ?? "") === coachId

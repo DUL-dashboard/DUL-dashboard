@@ -5,6 +5,13 @@ export const FRAGOR_TABLE = "Frågor";
 export const TRANARE_TABLE = "Tränare";
 export const TALLY_TABLE = "Tally-inskickningar";
 
+/**
+ * Under detta antal svarande idrottare finns risk att enskilda svar går
+ * att härleda till en person - PDF-rapporten och rapport-API:et varnar
+ * (utan att blockera) när en tränares antal svarande understiger detta.
+ */
+export const LOW_RESPONSE_THRESHOLD = 5;
+
 export const ANSWER_OPTIONS = [
   "Nästan alltid",
   "Då och då",

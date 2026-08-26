@@ -2,6 +2,7 @@ import path from "path";
 import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import {
   ANSWER_OPTIONS,
+  LOW_RESPONSE_THRESHOLD,
   type AnswerOption,
   type AreaReport,
   type InstrumentAreaStructure,
@@ -80,7 +81,22 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica-Bold",
     color: CHARCOAL,
     letterSpacing: 0.5,
-    marginBottom: 24,
+    marginBottom: 16,
+  },
+  coverWarning: {
+    width: "100%",
+    maxWidth: 400,
+    backgroundColor: "#FDECEA",
+    border: "0.75px solid #C0392B",
+    padding: 8,
+    marginBottom: 16,
+  },
+  coverWarningText: {
+    fontSize: 8.5,
+    fontFamily: "Helvetica-Bold",
+    color: "#8B1E1E",
+    lineHeight: 1.3,
+    textAlign: "center",
   },
   coverTable: { width: "100%", maxWidth: 400, marginBottom: 24 },
   coverRow: { flexDirection: "row" },
@@ -434,6 +450,15 @@ export function CoachDimensionReportDocument({
           <Text style={styles.coverTitle}>Ditt Unika Ledarskap</Text>
           <Text style={styles.coverSubtitle}>FEEDFORWARD-RAPPORT</Text>
           <Text style={styles.coverAgeNote}>FÖR ÅLDERSGRUPPEN 20+ ÅR</Text>
+
+          {antalSvarande < LOW_RESPONSE_THRESHOLD && (
+            <View style={styles.coverWarning}>
+              <Text style={styles.coverWarningText}>
+                VARNING: Endast {antalSvarande} svar registrerade — resultat
+                kan vara anonymitetskänsliga vid så få respondenter.
+              </Text>
+            </View>
+          )}
 
           <View style={styles.coverTable}>
             {[
