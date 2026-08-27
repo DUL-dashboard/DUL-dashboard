@@ -1,9 +1,14 @@
-# Referensdata för framtida anmälningsformulär
+# Referensdata för anmälningsformuläret
 
-Kommande arbete (ej påbörjat): ett separat anmälningsformulär där tränare
-fyller i Idrott, Åldersgrupp och Nivå, som automatiskt matas in i Airtable
-(Tränare-tabellen saknar idag dessa fält – se `CoachDimensionReportDocument.tsx`
-där ÅLDERSGRUPP/NIVÅ är borttagna ur PDF-rapporten tills detta finns på plats).
+Se `docs/tally-tranare-anmalan-formular.md` för den fullständiga
+bygginstruktionen för Tally-formuläret "DUL anmälan tränare" (fält,
+Airtable-mappning, bekräftelsemejl). Tränare-tabellen har nu fått fälten
+`Förening eller organisation`, `Kön`, `Åldersgrupp` och `Nivå`. Den här
+filen behålls som ren referens för options-listorna.
+
+PDF-rapporten (`CoachDimensionReportDocument.tsx`) visar fortfarande inte
+ÅLDERSGRUPP/NIVÅ på omslaget – uppdatera den när formuläret är i skarp
+drift och det finns riktig data i de nya fälten.
 
 ## Idrott
 
