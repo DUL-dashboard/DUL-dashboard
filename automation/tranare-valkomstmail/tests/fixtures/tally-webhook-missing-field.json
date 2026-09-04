@@ -1,0 +1,21 @@
+{
+  "eventId": "fixture-event-3",
+  "eventType": "FORM_RESPONSE",
+  "createdAt": "2026-09-04T10:00:00.000Z",
+  "data": {
+    "responseId": "resp-3",
+    "submissionId": "sub-3",
+    "respondentId": "respondent-3",
+    "formId": "TEST_FORM_ID",
+    "formName": "DUL anmälan tränare (TEST)",
+    "createdAt": "2026-09-04T10:00:00.000Z",
+    "fields": [
+      {
+        "key": "question_name",
+        "label": "Namn",
+        "type": "INPUT_TEXT",
+        "value": "Anna Andersson"
+      }
+    ]
+  }
+}

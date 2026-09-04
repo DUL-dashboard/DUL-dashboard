@@ -1,0 +1,33 @@
+{
+  "eventId": "fixture-event-2",
+  "eventType": "FORM_RESPONSE",
+  "createdAt": "2026-09-04T10:00:00.000Z",
+  "data": {
+    "responseId": "resp-2",
+    "submissionId": "sub-2",
+    "respondentId": "respondent-2",
+    "formId": "DUL_ANMALAN_TRANARE_LIVE_ID",
+    "formName": "DUL anmälan tränare",
+    "createdAt": "2026-09-04T10:00:00.000Z",
+    "fields": [
+      {
+        "key": "question_name",
+        "label": "Namn",
+        "type": "INPUT_TEXT",
+        "value": "Riktig Tränare"
+      },
+      {
+        "key": "question_email",
+        "label": "E-post",
+        "type": "INPUT_EMAIL",
+        "value": "riktig.tranare@example.com"
+      },
+      {
+        "key": "question_coach_id",
+        "label": "Coach ID",
+        "type": "INPUT_TEXT",
+        "value": "LIVE-COACH-999"
+      }
+    ]
+  }
+}

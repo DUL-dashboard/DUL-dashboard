@@ -1,0 +1,33 @@
+{
+  "eventId": "fixture-event-1",
+  "eventType": "FORM_RESPONSE",
+  "createdAt": "2026-09-04T10:00:00.000Z",
+  "data": {
+    "responseId": "resp-1",
+    "submissionId": "sub-1",
+    "respondentId": "respondent-1",
+    "formId": "TEST_FORM_ID",
+    "formName": "DUL anmälan tränare (TEST)",
+    "createdAt": "2026-09-04T10:00:00.000Z",
+    "fields": [
+      {
+        "key": "question_name",
+        "label": "Namn",
+        "type": "INPUT_TEXT",
+        "value": "Anna Andersson"
+      },
+      {
+        "key": "question_email",
+        "label": "E-post",
+        "type": "INPUT_EMAIL",
+        "value": "anna.andersson@example.com"
+      },
+      {
+        "key": "question_coach_id",
+        "label": "Coach ID",
+        "type": "INPUT_TEXT",
+        "value": "TEST-COACH-001"
+      }
+    ]
+  }
+}
