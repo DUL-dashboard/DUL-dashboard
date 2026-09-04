@@ -44,12 +44,47 @@ riktigt mejl. Det som är klart är:
   bygga den personliga länken, avgöra mottagare och formatera mejlet.
 - Ett komplett Apps Script-skript (`apps-script/Code.gs`) med
   säkerhetsspärrarna ovan, redo att klistras in.
-- 14 automatiska tester (`tests/logic.test.js`) som bevisar logiken,
+- 17 automatiska tester (`tests/logic.test.js`) som bevisar logiken,
   inklusive att en payload från "live"-formulärets ID avvisas och att
   testadressen alltid vinner över den inskickade adressen.
 
 Nästa steg (att faktiskt skapa testformuläret och Apps Script-projektet)
 kräver att **du** loggar in och gör dem - se steg-för-steg nedan.
+
+## Redigera mejltexten
+
+Texten som skickas ut styrs helt av `CONFIG.emailTemplate` i
+`apps-script/Code.gs` - ändra `subject` och `body` till exakt vad du vill
+säga till tränarna. Två platshållare fylls i automatiskt:
+
+- `{{namn}}` → namnet från formulärsvaret
+- `{{lank}}` → den personliga DUL-länken (`.../68ED6O?Coach_ID=...` i
+  skarpt läge)
+
+Exempel:
+
+```js
+emailTemplate: {
+  subject: "Kul att du anmält dig, {{namn}}!",
+  body: [
+    "Hej {{namn}},",
+    "",
+    "Innan kursen vill vi att du:",
+    "1. Läser igenom kursmaterialet (länk här).",
+    "2. Svarar på din personliga DUL-enkät: {{lank}}",
+    "3. Hör av dig om du har frågor.",
+    "",
+    "Vi ses snart!",
+  ].join("\n"),
+},
+```
+
+Du kan skriva om texten helt fritt (radbrytningar, punktlistor, egna
+instruktioner) - så länge `{{lank}}` finns med någonstans får tränaren sin
+personliga länk. I testläge lägger koden ändå på `[TEST]` i ämnesraden och
+en varningsrad i brödtexten automatiskt, oavsett vad du skriver i mallen -
+det går alltså inte att av misstag ta bort testmärkningen genom att
+redigera texten.
 
 ## Köra de automatiska testerna
 
@@ -60,7 +95,7 @@ Ingen extra dependency behövs (samma mönster som repots övriga
 node --test automation/tranare-valkomstmail/tests/logic.test.js
 ```
 
-Alla 14 tester ska gå igenom (`# pass 14`, `# fail 0`).
+Alla 17 tester ska gå igenom (`# pass 17`, `# fail 0`).
 
 ## Steg-för-steg: bygg den isolerade testmiljön
 
@@ -198,7 +233,7 @@ automation/tranare-valkomstmail/
     Code.gs               doPost, CONFIG, Gmail-sändning, selfTest()
     appsscript.json        Valfritt manifest (webapp-inställningar, tidszon)
   tests/
-    logic.test.js          14 tester mot shared-logic.js (node --test)
+    logic.test.js          17 tester mot shared-logic.js (node --test)
     fixtures/
       tally-webhook-sample.json          Giltig payload från testformuläret
       tally-webhook-wrong-form.json      Payload som om den kom från "DUL anmälan tränare" - ska avvisas

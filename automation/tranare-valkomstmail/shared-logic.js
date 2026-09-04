@@ -115,38 +115,51 @@ function resolveRecipient(config, submittedEmail) {
   return submittedEmail;
 }
 
-/** Bygger ämnesrad + brödtext för välkomstmejlet. */
+/**
+ * Ersätter {{namn}}, {{lank}} osv. i en textmall med värden ur `vars`.
+ * Okända platshållare (felstavade, eller sådana som inte finns i `vars`)
+ * lämnas orörda istället för att bli tomma, så att ett stavfel upptäcks
+ * lätt i utskicket istället för att tyst försvinna.
+ */
+function renderTemplate(template, vars) {
+  return String(template).replace(/\{\{\s*(\w+)\s*\}\}/g, function (
+    match,
+    key
+  ) {
+    return Object.prototype.hasOwnProperty.call(vars, key)
+      ? vars[key]
+      : match;
+  });
+}
+
+/**
+ * Bygger ämnesrad + brödtext för välkomstmejlet utifrån
+ * `options.template` (= CONFIG.emailTemplate, se Code.gs) - alltså den
+ * fritt redigerbara text ni själva skriver. Tillgängliga platshållare i
+ * mallen: {{namn}} och {{lank}}.
+ *
+ * I testläge läggs en varningsbanderoll till och [TEST] i ämnesraden,
+ * oavsett vad mallen innehåller - det går alltså inte att av misstag
+ * skriva bort testmärkningen genom att redigera mallen.
+ */
 function formatWelcomeEmail(options) {
-  var name = options.name;
-  var personalLink = options.personalLink;
   var testMode = !!options.testMode;
   var originalEmail = options.originalEmail;
+  var vars = { namn: options.name, lank: options.personalLink };
 
-  var subjectPrefix = testMode ? "[TEST] " : "";
-  var subject = subjectPrefix + "Välkommen till DUL - din personliga länk";
+  var subject = renderTemplate(options.template.subject, vars);
+  var body = renderTemplate(options.template.body, vars);
 
-  var lines = [];
   if (testMode) {
-    lines.push(
+    subject = "[TEST] " + subject;
+    body =
       "*** TESTMEJL - detta hade i skarpt läge gått till: " +
-        (originalEmail || "(okänd adress)") +
-        " ***",
-      ""
-    );
+      (originalEmail || "(okänd adress)") +
+      " ***\n\n" +
+      body;
   }
-  lines.push(
-    "Hej " + name + "!",
-    "",
-    "Tack för din anmälan. Här är din personliga länk till DUL-enkäten:",
-    "",
-    personalLink,
-    "",
-    "Länken är unik för dig - dela den inte vidare.",
-    "",
-    "Vänliga hälsningar"
-  );
 
-  return { subject: subject, body: lines.join("\n") };
+  return { subject: subject, body: body };
 }
 
 if (typeof module !== "undefined") {
@@ -155,6 +168,7 @@ if (typeof module !== "undefined") {
     isAllowedForm: isAllowedForm,
     buildPersonalDulLink: buildPersonalDulLink,
     resolveRecipient: resolveRecipient,
+    renderTemplate: renderTemplate,
     formatWelcomeEmail: formatWelcomeEmail,
   };
 }

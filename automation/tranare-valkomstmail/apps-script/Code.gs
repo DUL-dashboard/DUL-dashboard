@@ -42,6 +42,26 @@ var CONFIG = {
     coachId: ["Coach ID", "Coach_ID", "CoachID"],
   },
 
+  // Mejlets ämnesrad och brödtext - redigera fritt. Tillgängliga
+  // platshållare: {{namn}} och {{lank}} (den personliga DUL-länken).
+  // I testläge läggs [TEST] och en varningsbanderoll till automatiskt
+  // (se formatWelcomeEmail i Logic.gs) - det går inte att skriva bort
+  // dem härifrån, så det är ofarligt att experimentera med texten.
+  emailTemplate: {
+    subject: "Välkommen till DUL - din personliga länk",
+    body: [
+      "Hej {{namn}}!",
+      "",
+      "Tack för din anmälan. Här är din personliga länk till DUL-enkäten:",
+      "",
+      "{{lank}}",
+      "",
+      "Länken är unik för dig - dela den inte vidare.",
+      "",
+      "Vänliga hälsningar",
+    ].join("\n"),
+  },
+
   // Delad hemlighet som måste matcha query-parametern `?secret=...` i
   // webhook-URL:en. Sätts INTE här i koden (för att inte hamna i historik/
   // delningar av skriptet) utan i Project Settings > Script Properties,
@@ -76,6 +96,7 @@ function doPost(e) {
       personalLink: link,
       testMode: CONFIG.testMode,
       originalEmail: parsed.email,
+      template: CONFIG.emailTemplate,
     });
     var recipient = resolveRecipient(CONFIG, parsed.email);
 

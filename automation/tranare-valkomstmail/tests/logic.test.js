@@ -14,6 +14,7 @@ const {
   isAllowedForm,
   buildPersonalDulLink,
   resolveRecipient,
+  renderTemplate,
   formatWelcomeEmail,
 } = require("../shared-logic.js");
 
@@ -26,6 +27,21 @@ const FIELD_LABELS = {
   name: ["Namn", "Name"],
   email: ["E-post", "Email", "E-mail"],
   coachId: ["Coach ID", "Coach_ID", "CoachID"],
+};
+
+const DEFAULT_TEMPLATE = {
+  subject: "Välkommen till DUL - din personliga länk",
+  body: [
+    "Hej {{namn}}!",
+    "",
+    "Tack för din anmälan. Här är din personliga länk till DUL-enkäten:",
+    "",
+    "{{lank}}",
+    "",
+    "Länken är unik för dig - dela den inte vidare.",
+    "",
+    "Vänliga hälsningar",
+  ].join("\n"),
 };
 
 const TEST_CONFIG = {
@@ -105,12 +121,21 @@ test("resolveRecipient använder den riktiga adressen ENDAST när testMode=false
   assert.equal(recipient, "en.riktig.tranare@example.com");
 });
 
+test("renderTemplate ersätter {{namn}} och {{lank}} men lämnar okända platshållare orörda", () => {
+  const result = renderTemplate("Hej {{namn}}, se {{lank}} och {{okand}}.", {
+    namn: "Anna",
+    lank: "https://example.com",
+  });
+  assert.equal(result, "Hej Anna, se https://example.com och {{okand}}.");
+});
+
 test("formatWelcomeEmail märker ämnesraden [TEST] i testläge och visar ursprunglig adress i brödtexten", () => {
   const email = formatWelcomeEmail({
     name: "Anna",
     personalLink: "https://tally.so/r/TEST_ENKAT_ID?Coach_ID=TEST-COACH-001",
     testMode: true,
     originalEmail: "anna.andersson@example.com",
+    template: DEFAULT_TEMPLATE,
   });
 
   assert.match(email.subject, /^\[TEST\]/);
@@ -124,10 +149,60 @@ test("formatWelcomeEmail har inget [TEST]-prefix eller varningstext i skarpt lä
     name: "Anna",
     personalLink: "https://tally.so/r/68ED6O?Coach_ID=LIVE-COACH-001",
     testMode: false,
+    template: DEFAULT_TEMPLATE,
   });
 
   assert.doesNotMatch(email.subject, /\[TEST\]/);
   assert.doesNotMatch(email.body, /TESTMEJL/);
+});
+
+test("formatWelcomeEmail använder en helt egen, fritt skriven mall korrekt", () => {
+  const customTemplate = {
+    subject: "Kul att du är med, {{namn}}!",
+    body: [
+      "Hej {{namn}},",
+      "",
+      "Innan kursen vill vi att du:",
+      "1. Läser igenom materialet på vår hemsida.",
+      "2. Svarar på din personliga DUL-enkät här: {{lank}}",
+      "3. Hör av dig om du har frågor.",
+      "",
+      "Vi ses snart!",
+    ].join("\n"),
+  };
+
+  const email = formatWelcomeEmail({
+    name: "Björn",
+    personalLink: "https://tally.so/r/TEST_ENKAT_ID?Coach_ID=TEST-COACH-003",
+    testMode: false,
+    template: customTemplate,
+  });
+
+  assert.equal(email.subject, "Kul att du är med, Björn!");
+  assert.match(email.body, /Hej Björn,/);
+  assert.match(
+    email.body,
+    /Svarar på din personliga DUL-enkät här: https:\/\/tally\.so\/r\/TEST_ENKAT_ID\?Coach_ID=TEST-COACH-003/
+  );
+});
+
+test("formatWelcomeEmail lägger till testbanderoll och [TEST] även med en egen mall - går inte att skriva bort", () => {
+  const customTemplate = {
+    subject: "Mitt eget ämne utan test-ord",
+    body: "Min egen text utan omnämnande av test.",
+  };
+
+  const email = formatWelcomeEmail({
+    name: "Björn",
+    personalLink: "https://tally.so/r/TEST_ENKAT_ID?Coach_ID=TEST-COACH-003",
+    testMode: true,
+    originalEmail: "bjorn@example.com",
+    template: customTemplate,
+  });
+
+  assert.match(email.subject, /^\[TEST\] Mitt eget ämne/);
+  assert.match(email.body, /TESTMEJL/);
+  assert.match(email.body, /bjorn@example\.com/);
 });
 
 test("end-to-end (i minnet): testformulärets payload -> mejl går bara till testadressen", () => {
@@ -142,6 +217,7 @@ test("end-to-end (i minnet): testformulärets payload -> mejl går bara till tes
     personalLink: link,
     testMode: TEST_CONFIG.testMode,
     originalEmail: parsed.email,
+    template: DEFAULT_TEMPLATE,
   });
 
   assert.equal(recipient, "mig@example.com");
